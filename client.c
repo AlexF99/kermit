@@ -6,6 +6,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include "socket.h"
+#include "mensagem.h"
+
+void print_byte(unsigned char c, int tam)
+{
+    for (int i = 0; i < tam; i++)
+        printf("%d", !!((c << i) & 0x80));
+    printf("\n");
+}
 
 int main(int argc, char const *argv[])
 {
@@ -17,7 +25,6 @@ int main(int argc, char const *argv[])
     {
         sleep(1);
         send(socket, buffer, htons(8), 0);
-        printf("%s\n", buffer);
     }
     return 0;
 }

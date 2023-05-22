@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include "socket.h"
+#include "mensagem.h"
 
 int main(int argc, char const *argv[])
 {
