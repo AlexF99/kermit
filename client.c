@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -8,23 +9,23 @@
 #include "socket.h"
 #include "mensagem.h"
 
-void print_byte(unsigned char c, int tam)
-{
-    for (int i = 0; i < tam; i++)
-        printf("%d", !!((c << i) & 0x80));
-    printf("\n");
-}
-
 int main(int argc, char const *argv[])
 {
     int socket = ConexaoRawSocket("lo");
-    unsigned char *buffer = (unsigned char *)malloc(8);
-    memset(buffer, 0, 8);
-    memcpy(buffer, "ale", 8);
+    ssize_t message_size;
+    unsigned char *buffer = (unsigned char *)malloc(68);
+    memset(buffer, 0, 68);
+    memcpy(buffer, "lewis", 5);
+
+    mensagem_t * msg = cria_mensagem(0b00100111, 0b00101011, 0xf, 0x0);
+    empacota_mensagem(msg);
+    return;
+
     for (;;)
     {
         sleep(1);
-        send(socket, buffer, htons(8), 0);
+        message_size = send(socket, buffer, sizeof(unsigned char) * 68, 0);
+        printf("%zd\n", message_size);
     }
     return 0;
 }
