@@ -52,8 +52,6 @@ unsigned char * empacota_mensagem(mensagem_t * msg)
 
     memcpy(pct_mensagem + 1, &aux_e, sizeof(unsigned char));
 
-    print_byte(aux_e, 8);
-
     //Monta sequencia / tipo
     aux_e = msg->sequencia;
     aux_d = msg->tipo;
@@ -61,15 +59,36 @@ unsigned char * empacota_mensagem(mensagem_t * msg)
     aux_e = aux_e | aux_d;
     
     memcpy(pct_mensagem + 2, &aux_e, sizeof(unsigned char));
-    memcpy(pct_mensagem + 3, msg->dados, sizeof(unsigned char) * 39);
+    memcpy(pct_mensagem + 3, msg->dados, sizeof(unsigned char) * msg->tamanho);
+    memcpy(pct_mensagem + 3 + msg->tamanho, &msg->paridade, sizeof(unsigned char));
 
-    print_byte(aux_e, 8);
-    printf("%s\n", pct_mensagem);
+    return pct_mensagem;
+}
 
-    unsigned char aux;
-    for (int i = 0; i < 68; i++)
-    {
-        aux = *(pct_mensagem+i);
-        printf("%c ", aux);
-    }
+mensagem_t * desempacota_mensagem(unsigned char * pacote)
+{
+    mensagem_t * msg;
+    unsigned char marcador = *pacote;
+    unsigned char tamanho;
+    unsigned char sequencia;
+    unsigned char tipo;
+    unsigned char paridade;
+    unsigned char aux_d, aux_e;
+
+    //Desmonta tamanho / sequencia / tipo
+    aux_e = *(pacote+1);
+    aux_d = *(pacote+2);
+
+    tamanho = aux_e >> 2;
+    sequencia = ((aux_e << 4) & 0b00111111) | (aux_d >> 4);
+    tipo = aux_d & 0b00001111;
+    paridade = *(pacote + 3 + tamanho);
+
+    msg = cria_mensagem(tamanho, sequencia, tipo, paridade);
+    return msg;
+}
+
+void imprime_mensagem(mensagem_t * msg)
+{
+    printf("Marcador de inicio: %x\nTamanho: %x\nSequencia: %x\nTipo: %x\nParidade: %x\n\n", msg->inicio, msg->tamanho, msg->sequencia, msg->tipo, msg->paridade);
 }

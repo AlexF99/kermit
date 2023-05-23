@@ -15,17 +15,17 @@ int main(int argc, char const *argv[])
     ssize_t message_size;
     unsigned char *buffer = (unsigned char *)malloc(68);
     memset(buffer, 0, 68);
-    memcpy(buffer, "lewis", 5);
 
-    mensagem_t * msg = cria_mensagem(0b00100111, 0b00101011, 0xf, 0x0);
-    empacota_mensagem(msg);
-    return;
+    mensagem_t * msg = cria_mensagem(0b00100111, 0b00101011, 0b00001111, 0b10101010);
+    unsigned char * pacote = empacota_mensagem(msg);
+    memcpy(buffer, pacote, sizeof(unsigned char) * 43);
 
     for (;;)
     {
         sleep(1);
+        printf("Enviando mensagem: (Client)\n");
+        imprime_mensagem(msg);
         message_size = send(socket, buffer, sizeof(unsigned char) * 68, 0);
-        printf("%zd\n", message_size);
     }
     return 0;
 }

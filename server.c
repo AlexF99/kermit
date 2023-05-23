@@ -12,9 +12,10 @@
 
 int main(int argc, char const *argv[])
 {
-    printf("pqp\n");
+    printf("  \n");
     int socket = ConexaoRawSocket("lo");
     ssize_t message_size;
+    mensagem_t * msg;
 
     unsigned char *buffer = (unsigned char *)malloc(68); // to receive data
     memset(buffer, 0, 68);
@@ -23,8 +24,11 @@ int main(int argc, char const *argv[])
     {
         sleep(1);
         message_size = recv(socket, buffer, sizeof(unsigned char) * 68, 0);
-        printf("%zi\n", message_size);
-        printf("%s\n\n", buffer);
+        msg = desempacota_mensagem(buffer);
+        printf("Recebi a mensagem: (Server)\n");
+        imprime_mensagem(msg);
+        // printf("%zi\n", message_size);
+        // printf("%s\n\n", buffer);
     }
     return 0;
 }
