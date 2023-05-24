@@ -11,6 +11,23 @@
 
 int main(int argc, char const *argv[])
 {
+    FILE * arq;
+    char a;
+
+    arq = fopen("arquivo_client.txt", "r");
+
+    if (!arq)
+    {
+        perror("Erro ao abrir arquivo.");
+        exit(1);
+    }
+
+    while (!feof(arq))
+    {
+        a = getc(arq);
+        printf("%c\n", a);
+    }
+
     int socket = ConexaoRawSocket("lo");
     ssize_t message_size;
     unsigned char *buffer = (unsigned char *)malloc(68);
