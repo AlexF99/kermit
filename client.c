@@ -17,6 +17,20 @@ void print_byte(unsigned char c, int tam)
 
 int main(int argc, char const *argv[])
 {
+    printf("operacoes:\ncd local: cd\nbackup: backup <nome arquivos ou regex>\n");
+    printf("recuperar backup: recupera <nome arquivos ou regex>\n");
+    printf("define dir p/ backup\nbkpdir <caminho>\nverifica backup: verifica <nome arquivo>\n");
+    char entrada[100];
+    char ch;
+
+    for (int loop = 0; (ch = getc(stdin)) != '\n';)
+    {
+        entrada[loop] = ch;
+        ++loop;
+    }
+
+    printf("entrada: %s\n", entrada);
+
     int socket = ConexaoRawSocket("lo");
     unsigned char *buffer = (unsigned char *)malloc(8);
     memset(buffer, 0, 8);
