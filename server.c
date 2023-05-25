@@ -22,12 +22,12 @@ int main(int argc, char const *argv[])
 
     for (;;)
     {
-        sleep(1);
         message_size = recv(socket, buffer, sizeof(unsigned char) * 68, 0);
         msg = desempacota_mensagem(buffer);
         printf("Recebi a mensagem: (Server)\n");
         imprime_mensagem(msg);
         // printf("%zi\n", message_size);
+        sleep(1);
         // printf("%s\n\n", buffer);
     }
     return 0;

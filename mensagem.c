@@ -38,9 +38,6 @@ unsigned char * empacota_mensagem(mensagem_t * msg)
     unsigned char aux_e;
     unsigned char aux_d;
 
-    char * dados = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-    msg->dados = (unsigned char *)dados;
-
     memcpy(pct_mensagem, &msg->inicio, sizeof(unsigned char));
 
     //Monta tamanho / sequencia
@@ -67,8 +64,9 @@ unsigned char * empacota_mensagem(mensagem_t * msg)
 
 mensagem_t * desempacota_mensagem(unsigned char * pacote)
 {
+    printf("%s\n", pacote);
+
     mensagem_t * msg;
-    unsigned char marcador = *pacote;
     unsigned char tamanho;
     unsigned char sequencia;
     unsigned char tipo;
