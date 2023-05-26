@@ -1,4 +1,5 @@
 socket.o
+entrada.o
 client
 server
 .vscode/*

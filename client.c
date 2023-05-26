@@ -6,8 +6,10 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+
 #include "socket.h"
 #include "mensagem.h"
+#include "entrada.h"
 
 int main(int argc, char const *argv[])
 {
@@ -27,6 +29,7 @@ int main(int argc, char const *argv[])
 
     for (;;)
     {
+        get_entrada();
         scanf("%s", nome_arquivo);
         arq = fopen(nome_arquivo, "r");
 
