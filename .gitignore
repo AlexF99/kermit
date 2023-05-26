@@ -1,5 +1,4 @@
-socket.o
-entrada.o
+*.o
 client
 server
 .vscode/*
