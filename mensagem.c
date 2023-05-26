@@ -64,9 +64,12 @@ unsigned char * empacota_mensagem(mensagem_t * msg)
 
 mensagem_t * desempacota_mensagem(unsigned char * pacote)
 {
-    printf("%s\n", pacote);
-
     mensagem_t * msg;
+    unsigned char inicio_mensagem = (unsigned char) *pacote;
+
+    if (inicio_mensagem != INICIO_MSG)
+        return NULL;
+
     unsigned char tamanho;
     unsigned char sequencia;
     unsigned char tipo;
@@ -83,10 +86,14 @@ mensagem_t * desempacota_mensagem(unsigned char * pacote)
     paridade = *(pacote + 3 + tamanho);
 
     msg = cria_mensagem(tamanho, sequencia, tipo, paridade);
+    memcpy(msg->dados, (pacote+3), msg->tamanho);
     return msg;
 }
 
 void imprime_mensagem(mensagem_t * msg)
 {
+    if (!msg)
+        return;
+
     printf("Marcador de inicio: %x\nTamanho: %x\nSequencia: %x\nTipo: %x\nParidade: %x\n\n", msg->inicio, msg->tamanho, msg->sequencia, msg->tipo, msg->paridade);
 }

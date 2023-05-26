@@ -11,6 +11,28 @@ typedef struct mensagem_t
     unsigned char paridade;  // 8
 } mensagem_t;
 
+enum TIPOS
+{
+    BACKUP_ARQUIVO= 0,
+    BACKUP_GRUPO,
+    RECUPERA_ARQUIVO,
+    RECUPERA_GRUPO,
+    ESC,
+    VERIF,
+    NOME_ARQUIVO,
+    LIXO_0,
+    DADOS,
+    FIM_ARQUIVO,
+    FIM_GRUPO_ARQUIVO,
+    LIXO_1,
+    ERRO,
+    OK,
+    ACK,
+    NACK
+};
+
+#define INICIO_MSG 126
+
 mensagem_t * cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade);
 
 mensagem_t * desempacota_mensagem(unsigned char * pacote);

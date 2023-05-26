@@ -14,21 +14,50 @@ int main(int argc, char const *argv[])
 {
     printf("  \n");
     int socket = ConexaoRawSocket("lo");
-    ssize_t message_size;
     mensagem_t * msg;
+    FILE * arq;
 
     unsigned char *buffer = (unsigned char *)malloc(68); // to receive data
     memset(buffer, 0, 68);
 
+    int counter;
+
     for (;;)
     {
-        message_size = recv(socket, buffer, sizeof(unsigned char) * 68, 0);
+        recv(socket, buffer, sizeof(unsigned char) * 68, 0);
         msg = desempacota_mensagem(buffer);
-        printf("Recebi a mensagem: (Server)\n");
-        imprime_mensagem(msg);
-        // printf("%zi\n", message_size);
-        sleep(1);
-        // printf("%s\n\n", buffer);
+
+        if (msg && msg->tipo == BACKUP_ARQUIVO)
+        {
+            printf("Começando transmissão\n");
+            counter = 1;
+
+            arq = fopen("backup", "w+");
+
+            if (!arq)
+            {
+                perror("Erro ao criar backup");
+                exit(1);
+            }
+
+            while (msg->tipo != FIM_ARQUIVO)
+            {
+                recv(socket, buffer, sizeof(unsigned char) * 68, 0);
+                msg = desempacota_mensagem(buffer);
+
+                if (msg->sequencia == counter)
+                {
+                    if (msg->tipo == DADOS)
+                    {
+                        fprintf(arq, "%s", (char *) msg->dados);
+                    }
+
+                    counter++;
+                }
+            }
+            printf("Backup realizado com sucesso!\n");
+            fclose(arq);
+        }
     }
     return 0;
 }
