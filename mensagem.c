@@ -8,7 +8,7 @@
 mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade)
 {
     mensagem_t *msg = malloc(sizeof(mensagem_t));
-    msg->dados = malloc(sizeof(unsigned char) * tamanho);
+    msg->dados = calloc(sizeof(unsigned char) * tamanho, tamanho);
 
     if (!msg->dados)
     {
