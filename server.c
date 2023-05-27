@@ -14,9 +14,8 @@ int main(int argc, char const *argv[])
 {
     printf("  \n");
     int socket = ConexaoRawSocket("lo");
-    mensagem_t * msg;
-    FILE * arq;
-    char ext[10];
+    mensagem_t *msg;
+    FILE *arq;
 
     unsigned char *buffer = (unsigned char *)malloc(68); // to receive data
     memset(buffer, 0, 68);
@@ -30,21 +29,15 @@ int main(int argc, char const *argv[])
 
         if (msg && msg->tipo == BACKUP_ARQUIVO)
         {
+            printf("dados: %s\n", msg->dados);
             printf("Começando transmissão\n");
             counter = 1;
 
-            char * ptr = strchr((char *) msg->dados, '.');
+            char bkp_str[100] = "backup_";
 
-            if (ptr)
-            {
-                memcpy(ext, ptr, strlen(ptr));
-                memcpy(ptr, "_backup", 7);
-                strcat((char *) msg->dados, ext);
-            }
-            else
-                strcat((char *) msg->dados, "_backup");
+            strcat(bkp_str, (char *)msg->dados);
 
-            arq = fopen((char *) msg->dados, "w+");
+            arq = fopen(bkp_str, "w+");
 
             if (!arq)
             {
@@ -63,8 +56,8 @@ int main(int argc, char const *argv[])
                 if (msg->sequencia == counter)
                 {
                     if (msg->tipo == DADOS)
-                        fwrite((char *) msg->dados, 1, msg->tamanho, arq);
-                        // fprintf(arq, "%s", (char *) msg->dados);
+                        fwrite((char *)msg->dados, 1, msg->tamanho, arq);
+                    // fprintf(arq, "%s", (char *) msg->dados);
 
                     counter++;
                 }

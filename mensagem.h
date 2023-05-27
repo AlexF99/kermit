@@ -13,7 +13,7 @@ typedef struct mensagem_t
 
 enum TIPOS
 {
-    BACKUP_ARQUIVO= 0,
+    BACKUP_ARQUIVO = 0,
     BACKUP_GRUPO,
     RECUPERA_ARQUIVO,
     RECUPERA_GRUPO,
@@ -33,14 +33,12 @@ enum TIPOS
 
 #define INICIO_MSG 126
 
-mensagem_t * cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade);
+mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade);
 
-mensagem_t * desempacota_mensagem(unsigned char * pacote);
+mensagem_t *desempacota_mensagem(unsigned char *pacote);
 
-unsigned char * empacota_mensagem(mensagem_t * mensagem);
+unsigned char *empacota_mensagem(mensagem_t *mensagem);
 
-void imprime_mensagem(mensagem_t * msg);
+void imprime_mensagem(mensagem_t *msg);
 
 #endif
-
-

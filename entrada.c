@@ -4,6 +4,8 @@
 #include <dirent.h>
 #include <unistd.h>
 
+#include "entrada.h"
+
 #define BLUE "\x1b[34m"
 #define WHITE "\x1b[37m"
 
@@ -12,8 +14,8 @@ int valida_arqs(char *params)
     DIR *dp = opendir("./");
     if (!dp)
     {
-        fprintf(stderr, "./ nao pode ser aberto\n");
-        return -1;
+        fprintf(stderr, "diretorio nao pode ser aberto\n");
+        return 1;
     }
     struct dirent *ep;
     char arq[100];
@@ -52,30 +54,56 @@ int cd_local(char *path)
     return 0;
 }
 
-void get_entrada()
+entrada_t *get_entrada()
 {
     printf(BLUE "\noperacoes:\ncd local: cd\nbackup: backup <nome arquivos ou regex>\n");
     printf("recuperar backup: recupera <nome arquivos ou regex>\n");
     printf("define dir p/ backup: bkpdir <caminho>\nverifica backup: verifica <nome arquivo>\n\n:" WHITE);
-    char comando[50];
-    char params[100];
-    char ch;
 
-    for (int i = 0; (ch = getc(stdin)) != ' ';)
+    char comando[50];
+    entrada_t *entrada = malloc(sizeof(entrada_t *));
+    char *line = NULL;
+    size_t size = 200;
+
+    if (getline(&line, &size, stdin) == -1)
+        printf("No line\n");
+    else
+        printf("line: %s\n", line);
+
+    line[strlen(line) - 1] = '\0';
+
+    char **aux = malloc(10 * sizeof(char *));
+    entrada->params = malloc(10 * sizeof(char *));
+    for (int i = 0; i < 10; i++)
+        aux[i] = malloc(200 * sizeof(char));
+
+    char *ptr = strtok(line, " ");
+    int num_entradas = 0;
+    aux[num_entradas++] = ptr;
+
+    while (ptr != NULL)
     {
-        comando[i] = ch;
-        comando[++i] = '\0';
+        ptr = strtok(NULL, " ");
+        if (ptr != NULL)
+            aux[num_entradas++] = ptr;
     }
-    for (int i = 0; (ch = getc(stdin)) != '\n';)
+
+    strcpy(comando, aux[0]);
+    for (int i = 1; i < num_entradas; i++)
     {
-        params[i] = ch;
-        params[++i] = '\0';
+        if (aux != NULL && strlen(aux[i]) > 0)
+            entrada->params[i - 1] = aux[i];
     }
+
+    entrada->num_params = num_entradas - 1;
 
     if (strcmp("cd", comando) == 0)
-        cd_local(params);
+    {
+        cd_local(entrada->params[0]);
+        entrada = NULL;
+    }
     else if (strcmp("backup", comando) == 0)
-        valida_arqs(params);
+        entrada->comando = BACKUP;
     else if (strcmp("recupera", comando) == 0)
         printf("recupera\n");
     else if (strcmp("bkpdir", comando) == 0)
@@ -83,9 +111,12 @@ void get_entrada()
     else if (strcmp("verifica", comando) == 0)
         printf("verifica\n");
     else
-    {
-        comando[0] = '\0';
-        params[0] = '\0';
         fprintf(stderr, "ERRO: comando invalido!\n\n");
-    }
+
+    printf("comando: %d\n", entrada->comando);
+    for (int i = 0; i < num_entradas - 1; i++)
+        printf("arq %d: %s\n", i, entrada->params[i]);
+
+    return entrada;
+    // todo: free aux
 }
