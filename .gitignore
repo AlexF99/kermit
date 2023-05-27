@@ -1,4 +1,5 @@
 *.o
+backup_*
 client
 server
 .vscode/*
