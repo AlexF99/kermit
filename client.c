@@ -11,7 +11,7 @@
 #include "mensagem.h"
 #include "entrada.h"
 
-void envia_arquivo(char *nome_arquivo, unsigned char *buffer, int socket)
+void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
     printf("nome arquivo: \"%s\"\n", nome_arquivo);
 
@@ -27,11 +27,18 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer, int socket)
     int n_mensagens = 0;
 
     // Inicio da transmissão
-    mensagem_t *msg = cria_mensagem(strlen(nome_arquivo), 0, BACKUP_ARQUIVO, 0);
-    memcpy(msg->dados, nome_arquivo, strlen(nome_arquivo));
-    unsigned char *pacote = empacota_mensagem(msg);
-    memcpy(buffer, pacote, sizeof(unsigned char) * 68);
-    send(socket, buffer, sizeof(unsigned char) * 68, 0);
+    mensagem_t *msg = cria_mensagem(strlen(nome_arquivo), n_mensagens++, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
+    envia_mensagem(msg, buffer_out, socket);
+
+    recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+    msg = desempacota_mensagem(buffer_in);
+
+    while (msg->tipo != ACK)
+    {
+        memset(buffer_in, 0, 67);
+        recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+        msg = desempacota_mensagem(buffer_in);
+    }
 
     while (!feof(arq))
     {
@@ -40,23 +47,28 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer, int socket)
 
         bytes_lidos = fread(dados, 1, 63, arq);
 
-        msg = cria_mensagem((unsigned char)bytes_lidos, (unsigned char)n_mensagens, DADOS, 0);
-        memcpy(msg->dados, dados, bytes_lidos);
+        msg = cria_mensagem((unsigned char)bytes_lidos, n_mensagens++, DADOS, 0, (unsigned char *)dados);
         memset(dados, 0, 64);
-        ++n_mensagens;
 
-        pacote = empacota_mensagem(msg);
-        memcpy(buffer, pacote, sizeof(unsigned char) * 68);
-        send(socket, buffer, sizeof(unsigned char) * 68, 0);
+        envia_mensagem(msg, buffer_out, socket);
+        recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+        msg = desempacota_mensagem(buffer_in);
 
-        // printf("Enviando mensagem: (Client)\n");
+        while (msg->tipo != ACK)
+        {
+            memset(buffer_in, 0, 67);
+            recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+            msg = desempacota_mensagem(buffer_in);
+        }
+
         // imprime_mensagem(msg);
     }
 
-    msg = cria_mensagem(0, n_mensagens, FIM_ARQUIVO, 0);
-    pacote = empacota_mensagem(msg);
-    memcpy(buffer, pacote, sizeof(unsigned char) * 68);
-    send(socket, buffer, sizeof(unsigned char) * 68, 0);
+    // recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+    // msg = desempacota_mensagem(buffer_in);
+
+    msg = cria_mensagem(0, n_mensagens, FIM_ARQUIVO, 0, NULL);
+    envia_mensagem(msg, buffer_out, socket);
 
     // printf("Enviando mensagem: (Client)\n");
     // imprime_mensagem(msg);
@@ -67,8 +79,10 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer, int socket)
 int main(int argc, char const *argv[])
 {
     int socket = ConexaoRawSocket("lo");
-    unsigned char *buffer = (unsigned char *)malloc(68);
-    memset(buffer, 0, 68);
+    unsigned char *buffer_out = (unsigned char *)malloc(67);
+    unsigned char *buffer_in = (unsigned char *)malloc(67);
+    memset(buffer_out, 0, 67);
+    memset(buffer_in, 0, 67);
 
     for (;;)
     {
@@ -76,7 +90,7 @@ int main(int argc, char const *argv[])
         if (entrada->comando == BACKUP)
         {
             for (int i = 0; i < entrada->num_params; i++)
-                envia_arquivo(entrada->params[i], buffer, socket);
+                envia_arquivo(entrada->params[i], buffer_out, buffer_in, socket);
         }
     }
     return 0;

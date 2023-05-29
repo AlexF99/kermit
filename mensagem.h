@@ -33,7 +33,9 @@ enum TIPOS
 
 #define INICIO_MSG 126
 
-mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade);
+mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade, unsigned char * dados);
+
+void envia_mensagem(mensagem_t * msg, unsigned char * buffer, int socket);
 
 mensagem_t *desempacota_mensagem(unsigned char *pacote);
 
