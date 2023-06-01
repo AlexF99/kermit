@@ -73,7 +73,7 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     unsigned char inicio_mensagem = (unsigned char)*pacote;
 
     if (inicio_mensagem != INICIO_MSG)
-        return NULL;
+        return cria_mensagem(0, 0, LIXO_0, 0, NULL);
 
     unsigned char tamanho;
     unsigned char sequencia;
@@ -107,4 +107,12 @@ void envia_mensagem(mensagem_t * msg, unsigned char * buffer, int socket)
     unsigned char *pacote = empacota_mensagem(msg);
     memcpy(buffer, pacote, sizeof(unsigned char) * 67);
     send(socket, buffer, sizeof(unsigned char) * 67, 0);
+    free(pacote);
+}
+
+void destroi_mensagem(mensagem_t * msg)
+{
+    free(msg->dados);
+    free(msg);
+    msg = NULL;
 }

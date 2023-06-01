@@ -37,6 +37,8 @@ mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsign
 
 void envia_mensagem(mensagem_t * msg, unsigned char * buffer, int socket);
 
+void destroi_mensagem(mensagem_t * msg);
+
 mensagem_t *desempacota_mensagem(unsigned char *pacote);
 
 unsigned char *empacota_mensagem(mensagem_t *mensagem);

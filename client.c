@@ -24,52 +24,56 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
 
     size_t bytes_lidos;
     char dados[64];
-    int n_mensagens = 0;
+    int sequencia_envio = 0;
+
+    mensagem_t * msg_in;
+    mensagem_t * msg_out;
 
     // Inicio da transmissão
-    mensagem_t *msg = cria_mensagem(strlen(nome_arquivo), n_mensagens++, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
-    envia_mensagem(msg, buffer_out, socket);
+    msg_out = cria_mensagem(strlen(nome_arquivo), sequencia_envio++, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
+    envia_mensagem(msg_out, buffer_out, socket);
 
-    recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-    msg = desempacota_mensagem(buffer_in);
+    // printf("Enviei mensagem: %d\n", msg_out->sequencia);
 
-    while (msg->tipo != ACK)
+    do
     {
-        memset(buffer_in, 0, 67);
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-        msg = desempacota_mensagem(buffer_in);
-    }
+        msg_in = desempacota_mensagem(buffer_in);
+    } while (msg_in->tipo != OK);
+    destroi_mensagem(msg_out);
 
+    // printf("Recebi OK da mensagem: %d\n", msg_in->sequencia);
+    
     while (!feof(arq))
     {
-        if (n_mensagens >= 64)
-            n_mensagens = 1;
+        if (sequencia_envio >= 64)
+            sequencia_envio = 1;
 
         bytes_lidos = fread(dados, 1, 63, arq);
 
-        msg = cria_mensagem((unsigned char)bytes_lidos, n_mensagens++, DADOS, 0, (unsigned char *)dados);
+        msg_out = cria_mensagem((unsigned char)bytes_lidos, sequencia_envio++, DADOS, 0, (unsigned char *)dados);
         memset(dados, 0, 64);
 
-        envia_mensagem(msg, buffer_out, socket);
-        recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-        msg = desempacota_mensagem(buffer_in);
+        envia_mensagem(msg_out, buffer_out, socket);
+        // printf("Enviei mensagem: %d\n", msg_out->sequencia);
 
-        while (msg->tipo != ACK)
+        do
         {
-            memset(buffer_in, 0, 67);
+            destroi_mensagem(msg_in);
             recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-            msg = desempacota_mensagem(buffer_in);
-        }
+            msg_in = desempacota_mensagem(buffer_in);
+        } while (msg_in->tipo != ACK || (msg_in->tipo == ACK && msg_in->sequencia != msg_out->sequencia));
 
-        // imprime_mensagem(msg);
+        destroi_mensagem(msg_out);
+        // printf("Recebi ACK da mensagem: %d\n", msg_in->sequencia);
     }
 
     // recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
     // msg = desempacota_mensagem(buffer_in);
 
-    msg = cria_mensagem(0, n_mensagens, FIM_ARQUIVO, 0, NULL);
-    envia_mensagem(msg, buffer_out, socket);
-
+    msg_out = cria_mensagem(0, sequencia_envio, FIM_ARQUIVO, 0, NULL);
+    envia_mensagem(msg_out, buffer_out, socket);
+    imprime_mensagem(msg_out);
     // printf("Enviando mensagem: (Client)\n");
     // imprime_mensagem(msg);
 
