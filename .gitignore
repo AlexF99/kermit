@@ -1,4 +1,8 @@
 *.o
+*.pdf
+*.mkv
+*.iso
+*.png
 backup_*
 client
 server
