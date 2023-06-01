@@ -7,7 +7,7 @@
 
 #define MARCADOR_INICIO 0x7e
 
-mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade, unsigned char * dados)
+mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade, unsigned char *dados)
 {
     mensagem_t *msg = malloc(sizeof(mensagem_t));
     msg->dados = calloc(sizeof(unsigned char) * tamanho, tamanho);
@@ -102,7 +102,7 @@ void imprime_mensagem(mensagem_t *msg)
     printf("Marcador de inicio: %x\nTamanho: %x\nSequencia: %x\nTipo: %x\nParidade: %x\n\n", msg->inicio, msg->tamanho, msg->sequencia, msg->tipo, msg->paridade);
 }
 
-void envia_mensagem(mensagem_t * msg, unsigned char * buffer, int socket)
+void envia_mensagem(mensagem_t *msg, unsigned char *buffer, int socket)
 {
     unsigned char *pacote = empacota_mensagem(msg);
     memcpy(buffer, pacote, sizeof(unsigned char) * 67);
@@ -110,7 +110,7 @@ void envia_mensagem(mensagem_t * msg, unsigned char * buffer, int socket)
     free(pacote);
 }
 
-void destroi_mensagem(mensagem_t * msg)
+void destroi_mensagem(mensagem_t *msg)
 {
     free(msg->dados);
     free(msg);

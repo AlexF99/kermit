@@ -6,12 +6,14 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
 
 #include "socket.h"
 #include "mensagem.h"
 #include "entrada.h"
 
-void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
+int envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
     printf("nome arquivo: \"%s\"\n", nome_arquivo);
 
@@ -19,7 +21,7 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
     if (!arq)
     {
         fprintf(stderr, "Erro ao abrir arquivo %s\n", nome_arquivo);
-        return;
+        return 1;
     }
 
     size_t bytes_lidos;
@@ -35,7 +37,11 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
 
     do
     {
-        recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+        if (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
+        {
+            printf("deu timeout com recv(nome arquivo)\n");
+            envia_mensagem(msg_out, buffer_out, socket);
+        }
         msg_in = desempacota_mensagem(buffer_in);
     } while (msg_in->tipo != OK);
     destroi_mensagem(msg_out);
@@ -55,7 +61,11 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
         do
         {
             destroi_mensagem(msg_in);
-            recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+            if (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
+            {
+                printf("deu timeout com recv (envio do arq)\n");
+                return -1;
+            }
             msg_in = desempacota_mensagem(buffer_in);
         } while (msg_in->tipo != ACK || (msg_in->tipo == ACK && msg_in->sequencia != msg_out->sequencia));
 
@@ -68,11 +78,29 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
     imprime_mensagem(msg_out);
 
     fclose(arq);
+    return 0;
 }
 
 int main(int argc, char const *argv[])
 {
     int socket = ConexaoRawSocket("lo");
+
+    // timeout config
+    struct timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
+    {
+        fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
+        exit(1);
+    }
+    // talvez precise do timeout de send
+    // if (setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
+    // {
+    //     fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
+    //     exit(1);
+    // }
+
     unsigned char *buffer_out = (unsigned char *)malloc(67);
     unsigned char *buffer_in = (unsigned char *)malloc(67);
     memset(buffer_out, 0, 67);
@@ -82,12 +110,13 @@ int main(int argc, char const *argv[])
     {
         entrada_t *entrada = get_entrada();
         if (entrada->comando == BACKUP)
-        {
             for (int i = 0; i < entrada->num_params; i++)
-                envia_arquivo(entrada->params[i], buffer_out, buffer_in, socket);
-        }
+                while (envia_arquivo(entrada->params[i], buffer_out, buffer_in, socket) == -1) // verifica se deu timeout no envio
+                    printf("reenviando...");
         else if (entrada->comando == CD)
             continue;
     }
+
+    close(socket);
     return 0;
 }
