@@ -26,14 +26,12 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
     char dados[64];
     int sequencia_envio = 0;
 
-    mensagem_t * msg_in;
-    mensagem_t * msg_out;
+    mensagem_t *msg_in;
+    mensagem_t *msg_out;
 
     // Inicio da transmissão
     msg_out = cria_mensagem(strlen(nome_arquivo), sequencia_envio++, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
     envia_mensagem(msg_out, buffer_out, socket);
-
-    // printf("Enviei mensagem: %d\n", msg_out->sequencia);
 
     do
     {
@@ -42,8 +40,6 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
     } while (msg_in->tipo != OK);
     destroi_mensagem(msg_out);
 
-    // printf("Recebi OK da mensagem: %d\n", msg_in->sequencia);
-    
     while (!feof(arq))
     {
         if (sequencia_envio >= 64)
@@ -55,7 +51,6 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
         memset(dados, 0, 64);
 
         envia_mensagem(msg_out, buffer_out, socket);
-        // printf("Enviei mensagem: %d\n", msg_out->sequencia);
 
         do
         {
@@ -68,14 +63,9 @@ void envia_arquivo(char *nome_arquivo, unsigned char *buffer_out, unsigned char 
         // printf("Recebi ACK da mensagem: %d\n", msg_in->sequencia);
     }
 
-    // recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-    // msg = desempacota_mensagem(buffer_in);
-
     msg_out = cria_mensagem(0, sequencia_envio, FIM_ARQUIVO, 0, NULL);
     envia_mensagem(msg_out, buffer_out, socket);
     imprime_mensagem(msg_out);
-    // printf("Enviando mensagem: (Client)\n");
-    // imprime_mensagem(msg);
 
     fclose(arq);
 }
@@ -96,6 +86,8 @@ int main(int argc, char const *argv[])
             for (int i = 0; i < entrada->num_params; i++)
                 envia_arquivo(entrada->params[i], buffer_out, buffer_in, socket);
         }
+        else if (entrada->comando == CD)
+            continue;
     }
     return 0;
 }

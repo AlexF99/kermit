@@ -99,8 +99,8 @@ entrada_t *get_entrada()
 
     if (strcmp("cd", comando) == 0)
     {
+        entrada->comando = CD;
         cd_local(entrada->params[0]);
-        entrada = NULL;
     }
     else if (strcmp("backup", comando) == 0)
         entrada->comando = BACKUP;
