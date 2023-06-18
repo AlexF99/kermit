@@ -37,8 +37,23 @@ void print_byte(unsigned char c, int tam)
     printf("\n");
 }
 
+unsigned char paridade_byte(unsigned char *check)
+{
+    unsigned char result = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        unsigned char bit_a = (check[0] >> i) & 1;
+        unsigned char bit_b = (check[1] >> i) & 1;
+        unsigned char bit_parity = bit_a ^ bit_b;
+
+        result |= (bit_parity << i);
+    }
+    return result;
+}
+
 unsigned char *empacota_mensagem(mensagem_t *msg)
 {
+    unsigned char *check_paridade = malloc(sizeof(unsigned char) * 2);
     unsigned char *pct_mensagem = malloc(sizeof(unsigned char) * 67);
     unsigned char aux_e;
     unsigned char aux_d;
@@ -52,6 +67,8 @@ unsigned char *empacota_mensagem(mensagem_t *msg)
     aux_d = aux_d >> 4;
     aux_e = aux_e | aux_d;
 
+    memcpy(check_paridade, &aux_e, sizeof(unsigned char));
+
     memcpy(pct_mensagem + 1, &aux_e, sizeof(unsigned char));
 
     // Monta sequencia / tipo
@@ -60,10 +77,17 @@ unsigned char *empacota_mensagem(mensagem_t *msg)
     aux_e = aux_e << 4;
     aux_e = aux_e | aux_d;
 
+    memcpy(check_paridade + 1, &aux_e, sizeof(unsigned char));
+
     memcpy(pct_mensagem + 2, &aux_e, sizeof(unsigned char));
     memcpy(pct_mensagem + 3, msg->dados, sizeof(unsigned char) * msg->tamanho);
+
+    // monta paridade
+    unsigned char p = paridade_byte(check_paridade);
+    memcpy(&(msg->paridade), &p, sizeof(unsigned char));
     memcpy(pct_mensagem + 3 + msg->tamanho, &msg->paridade, sizeof(unsigned char));
 
+    free(check_paridade);
     return pct_mensagem;
 }
 
@@ -80,6 +104,7 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     unsigned char tipo;
     unsigned char paridade;
     unsigned char aux_d, aux_e;
+    unsigned char check_paridade[2];
 
     // Desmonta tamanho / sequencia / tipo
     aux_e = *(pacote + 1);
@@ -90,6 +115,18 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     tipo = aux_d & 0b00001111;
     paridade = *(pacote + 3 + tamanho);
 
+    check_paridade[0] = aux_e;
+    check_paridade[1] = aux_d;
+
+    check_paridade[0] = paridade_byte(check_paridade);
+    check_paridade[1] = paridade;
+
+    unsigned char p = paridade_byte(check_paridade);
+    if (p != 0b00000000)
+    {
+        fprintf(stderr, "ERRO: Paridade nao bate\n");
+        exit(1); // trocar pela lógica do NACK
+    }
     msg = cria_mensagem(tamanho, sequencia, tipo, paridade, (pacote + 3));
     return msg;
 }
