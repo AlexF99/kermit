@@ -44,7 +44,6 @@ int envia_arquivo(FILE * arq, unsigned char *buffer_out, unsigned char *buffer_i
 
     msg_out = cria_mensagem(0, sequencia_envio, FIM_ARQUIVO, 0, NULL);
     envia_mensagem(msg_out, buffer_out, socket);
-    imprime_mensagem(msg_out);
 
     fclose(arq);
     return 0;
@@ -86,6 +85,6 @@ int recebe_arquivo(FILE * arq, unsigned char *buffer_out, unsigned char *buffer_
 
         destroi_mensagem(msg_out);
     }
-
+    fclose(arq);
     return 0;
 }
