@@ -50,7 +50,6 @@ int main(int argc, char const *argv[])
 
             recebe_arquivo(arq, buffer_out, buffer_in, socket);
             printf("Backup realizado com sucesso!\n");
-            fclose(arq);
         }
 
         else if (msg_in && msg_in->tipo == RECUPERA_ARQUIVO)
