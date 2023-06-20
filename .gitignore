@@ -7,3 +7,5 @@ backup_*
 client
 server
 .vscode/*
+backup_*
+recupera_*

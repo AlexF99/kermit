@@ -19,18 +19,23 @@ int main(int argc, char const *argv[])
     mensagem_t *msg_out;
     FILE *arq;
 
-    unsigned char *buffer_in = (unsigned char *)malloc(67); // to receive data
+    unsigned char *buffer_in = (unsigned char *)malloc(67);  // to receive data
     unsigned char *buffer_out = (unsigned char *)malloc(67); // to receive data
 
     memset(buffer_in, 0, 67);
     memset(buffer_out, 0, 67);
 
-    // int sequencia_recibo = 0;
-
     for (;;)
     {
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
         msg_in = desempacota_mensagem(buffer_in);
+        if (msg_in == NULL)
+        {
+            printf("ENVIANDO NACK\n");
+            msg_out = cria_mensagem(0, 0, NACK, 0);
+            envia_mensagem(msg_out, buffer_out, socket);
+            continue;
+        }
 
         if (msg_in && msg_in->tipo == BACKUP_ARQUIVO)
         {
@@ -45,7 +50,7 @@ int main(int argc, char const *argv[])
                 exit(1);
             }
 
-            msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0, NULL);
+            msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0);
             envia_mensagem(msg_out, buffer_out, socket);
 
             recebe_arquivo(arq, buffer_out, buffer_in, socket);
@@ -57,7 +62,7 @@ int main(int argc, char const *argv[])
             char nome_arquivo[100];
             strcpy(nome_arquivo, (char *)msg_in->dados);
 
-            FILE * arq = fopen(nome_arquivo, "r");
+            FILE *arq = fopen(nome_arquivo, "r");
 
             if (!arq)
             {
@@ -67,9 +72,7 @@ int main(int argc, char const *argv[])
 
             if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
                 printf("Backup recuperado com sucesso!\n");
-        
         }
-    
     }
     return 0;
 }
