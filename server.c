@@ -9,6 +9,7 @@
 #include "socket.h"
 #include <net/ethernet.h>
 #include "mensagem.h"
+#include "arquivo.h"
 
 int main(int argc, char const *argv[])
 {
@@ -24,7 +25,7 @@ int main(int argc, char const *argv[])
     memset(buffer_in, 0, 67);
     memset(buffer_out, 0, 67);
 
-    int sequencia_recibo = 0;
+    // int sequencia_recibo = 0;
 
     for (;;)
     {
@@ -46,42 +47,30 @@ int main(int argc, char const *argv[])
 
             msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0, NULL);
             envia_mensagem(msg_out, buffer_out, socket);
-            // printf("Enviei OK para mensagem: %d\n", msg_out->sequencia);
 
-            do
-            {
-                recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-                msg_in = desempacota_mensagem(buffer_in);
-            } while (msg_in->tipo != DADOS);
-
-            destroi_mensagem(msg_out);
-
-            while (msg_in->tipo != FIM_ARQUIVO)
-            {
-                // printf("Recebi a mensagem: %d\n", msg_in->sequencia);
-                if (sequencia_recibo >= 64)
-                    sequencia_recibo = 1;
-
-                fwrite((char *)msg_in->dados, 1, msg_in->tamanho, arq);
-
-                msg_out = cria_mensagem(63, msg_in->sequencia, ACK, 0, NULL);
-                envia_mensagem(msg_out, buffer_out, socket);
-                // printf("Enviei ACK para mensagem: %d\n", msg_out->sequencia);
-                sequencia_recibo =  msg_in->sequencia + 1 >= 64 ? 1 : msg_in->sequencia + 1;
-                // printf("%d\n", sequencia_recibo);
-
-                do
-                {
-                    destroi_mensagem(msg_in);
-                    recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-                    msg_in = desempacota_mensagem(buffer_in);
-                } while ((msg_in->tipo != DADOS || msg_in->tipo != FIM_ARQUIVO) && msg_in->sequencia != sequencia_recibo);
-
-                destroi_mensagem(msg_out);
-            }
+            recebe_arquivo(arq, buffer_out, buffer_in, socket);
             printf("Backup realizado com sucesso!\n");
             fclose(arq);
         }
+
+        else if (msg_in && msg_in->tipo == RECUPERA_ARQUIVO)
+        {
+            char nome_arquivo[100];
+            strcpy(nome_arquivo, (char *)msg_in->dados);
+
+            FILE * arq = fopen(nome_arquivo, "r");
+
+            if (!arq)
+            {
+                printf("Arquivo não existe!\n");
+                return -1;
+            }
+
+            if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
+                printf("Backup recuperado com sucesso!\n");
+        
+        }
+    
     }
     return 0;
 }

@@ -125,7 +125,7 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     if (p != 0b00000000)
     {
         fprintf(stderr, "ERRO: Paridade nao bate\n");
-        exit(1); // trocar pela lógica do NACK
+        //exit(1); // trocar pela lógica do NACK
     }
     msg = cria_mensagem(tamanho, sequencia, tipo, paridade, (pacote + 3));
     return msg;
@@ -149,6 +149,9 @@ void envia_mensagem(mensagem_t *msg, unsigned char *buffer, int socket)
 
 void destroi_mensagem(mensagem_t *msg)
 {
+    if (!msg)
+        return;
+
     free(msg->dados);
     free(msg);
     msg = NULL;

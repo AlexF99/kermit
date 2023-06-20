@@ -105,7 +105,7 @@ entrada_t *get_entrada()
     else if (strcmp("backup", comando) == 0)
         entrada->comando = BACKUP;
     else if (strcmp("recupera", comando) == 0)
-        printf("recupera\n");
+        entrada->comando = RECUPERA;
     else if (strcmp("bkpdir", comando) == 0)
         printf("bkpdir\n");
     else if (strcmp("verifica", comando) == 0)
