@@ -51,7 +51,7 @@ int main(int argc, char const *argv[])
 
                 if (arq)
                 {
-                    msg_out = cria_mensagem(strlen(nome_arquivo), 0, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
+                    msg_out = cria_mensagem(strlen(nome_arquivo), 0, BACKUP_ARQUIVO, (unsigned char *)nome_arquivo);
                     envia_mensagem(msg_out, buffer_out, socket);
 
                     do
@@ -62,7 +62,13 @@ int main(int argc, char const *argv[])
                             envia_mensagem(msg_out, buffer_out, socket);
                         }
                         msg_in = desempacota_mensagem(buffer_in);
-                    } while (msg_in->tipo != OK);
+                        if (msg_in && msg_in->tipo == NACK)
+                        {
+                            printf("RECEBI UM NACK, reenviando mensagem...\n");
+                            envia_mensagem(msg_out, buffer_out, socket);
+                            continue;
+                        }
+                    } while (msg_in && msg_in->tipo != OK);
                     destroi_mensagem(msg_out);
 
                     while (envia_arquivo(arq, buffer_out, buffer_in, socket) == -1) // verifica se deu timeout no envio
@@ -89,7 +95,7 @@ int main(int argc, char const *argv[])
                     return 1;
                 }
 
-                msg_out = cria_mensagem(strlen(nome_arquivo), 0, RECUPERA_ARQUIVO, 0, (unsigned char *)nome_arquivo);
+                msg_out = cria_mensagem(strlen(nome_arquivo), 0, RECUPERA_ARQUIVO, (unsigned char *)nome_arquivo);
                 envia_mensagem(msg_out, buffer_out, socket);
 
                 recebe_arquivo(arq, buffer_out, buffer_in, socket);

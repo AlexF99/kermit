@@ -7,7 +7,7 @@
 
 #define MARCADOR_INICIO 0x7e
 
-mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char paridade, unsigned char *dados)
+mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char *dados)
 {
     mensagem_t *msg = malloc(sizeof(mensagem_t));
     msg->dados = calloc(sizeof(unsigned char) * tamanho, tamanho);
@@ -25,7 +25,6 @@ mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsign
     msg->tamanho = tamanho;
     msg->sequencia = sequencia;
     msg->tipo = tipo;
-    msg->paridade = paridade;
 
     return msg;
 }
@@ -97,7 +96,7 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     unsigned char inicio_mensagem = (unsigned char)*pacote;
 
     if (inicio_mensagem != INICIO_MSG)
-        return cria_mensagem(0, 0, LIXO_0, 0, NULL);
+        return cria_mensagem(0, 0, LIXO_0, 0);
 
     unsigned char tamanho;
     unsigned char sequencia;
@@ -124,10 +123,10 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     unsigned char p = paridade_byte(check_paridade);
     if (p != 0b00000000)
     {
-        fprintf(stderr, "ERRO: Paridade nao bate\n");
-        // exit(1); // trocar pela lógica do NACK
+        // vai gerar um NACK
+        return NULL;
     }
-    msg = cria_mensagem(tamanho, sequencia, tipo, paridade, (pacote + 3));
+    msg = cria_mensagem(tamanho, sequencia, tipo, (pacote + 3));
     return msg;
 }
 

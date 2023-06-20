@@ -25,12 +25,17 @@ int main(int argc, char const *argv[])
     memset(buffer_in, 0, 67);
     memset(buffer_out, 0, 67);
 
-    // int sequencia_recibo = 0;
-
     for (;;)
     {
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
         msg_in = desempacota_mensagem(buffer_in);
+        if (msg_in == NULL)
+        {
+            printf("ENVIANDO NACK\n");
+            msg_out = cria_mensagem(0, 0, NACK, 0);
+            envia_mensagem(msg_out, buffer_out, socket);
+            continue;
+        }
 
         if (msg_in && msg_in->tipo == BACKUP_ARQUIVO)
         {
@@ -45,7 +50,7 @@ int main(int argc, char const *argv[])
                 exit(1);
             }
 
-            msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0, NULL);
+            msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0);
             envia_mensagem(msg_out, buffer_out, socket);
 
             recebe_arquivo(arq, buffer_out, buffer_in, socket);
