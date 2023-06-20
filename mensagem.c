@@ -125,7 +125,7 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     if (p != 0b00000000)
     {
         fprintf(stderr, "ERRO: Paridade nao bate\n");
-        //exit(1); // trocar pela lógica do NACK
+        // exit(1); // trocar pela lógica do NACK
     }
     msg = cria_mensagem(tamanho, sequencia, tipo, paridade, (pacote + 3));
     return msg;

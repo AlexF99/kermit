@@ -31,12 +31,6 @@ int main(int argc, char const *argv[])
         fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
         exit(1);
     }
-    // talvez precise do timeout de send
-    // if (setsockopt(socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
-    // {
-    //     fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
-    //     exit(1);
-    // }
 
     unsigned char *buffer_out = (unsigned char *)malloc(67);
     unsigned char *buffer_in = (unsigned char *)malloc(67);
@@ -59,7 +53,7 @@ int main(int argc, char const *argv[])
                 {
                     msg_out = cria_mensagem(strlen(nome_arquivo), 0, BACKUP_ARQUIVO, 0, (unsigned char *)nome_arquivo);
                     envia_mensagem(msg_out, buffer_out, socket);
-    
+
                     do
                     {
                         if (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
@@ -70,15 +64,13 @@ int main(int argc, char const *argv[])
                         msg_in = desempacota_mensagem(buffer_in);
                     } while (msg_in->tipo != OK);
                     destroi_mensagem(msg_out);
-    
+
                     while (envia_arquivo(arq, buffer_out, buffer_in, socket) == -1) // verifica se deu timeout no envio
                         printf("reenviando...");
-                    
                 }
                 else
                     fprintf(stderr, "Erro ao abrir arquivo %s\n", nome_arquivo);
             }
-
         }
         else if (entrada->comando == RECUPERA)
         {

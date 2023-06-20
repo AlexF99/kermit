@@ -8,7 +8,7 @@
 #include "arquivo.h"
 #include "socket.h"
 
-int envia_arquivo(FILE * arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
+int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
     mensagem_t *msg_in = NULL;
     mensagem_t *msg_out = NULL;
@@ -49,7 +49,7 @@ int envia_arquivo(FILE * arq, unsigned char *buffer_out, unsigned char *buffer_i
     return 0;
 }
 
-int recebe_arquivo(FILE * arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
+int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
     mensagem_t *msg_in;
     mensagem_t *msg_out;

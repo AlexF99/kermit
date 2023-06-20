@@ -19,7 +19,7 @@ int main(int argc, char const *argv[])
     mensagem_t *msg_out;
     FILE *arq;
 
-    unsigned char *buffer_in = (unsigned char *)malloc(67); // to receive data
+    unsigned char *buffer_in = (unsigned char *)malloc(67);  // to receive data
     unsigned char *buffer_out = (unsigned char *)malloc(67); // to receive data
 
     memset(buffer_in, 0, 67);
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
             char nome_arquivo[100];
             strcpy(nome_arquivo, (char *)msg_in->dados);
 
-            FILE * arq = fopen(nome_arquivo, "r");
+            FILE *arq = fopen(nome_arquivo, "r");
 
             if (!arq)
             {
@@ -67,9 +67,7 @@ int main(int argc, char const *argv[])
 
             if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
                 printf("Backup recuperado com sucesso!\n");
-        
         }
-    
     }
     return 0;
 }
