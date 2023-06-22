@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
 {
     int socket = ConexaoRawSocket("lo");
 
-    mensagem_t *msg_in;
+    mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out;
     char nome_arquivo[100];
 
@@ -61,12 +61,11 @@ int main(int argc, char const *argv[])
                             printf("deu timeout com recv(nome arquivo)\n");
                             envia_mensagem(msg_out, buffer_out, socket);
                         }
-                        msg_in = desempacota_mensagem(buffer_in);
-                        if (msg_in && msg_in->tipo == NACK)
+                        if (desempacota_mensagem(buffer_in, &msg_in) == -1)
                         {
-                            printf("RECEBI UM NACK, reenviando mensagem...\n");
+                            printf("ENVIANDO NACK...\n");
+                            msg_out = cria_mensagem(0, 0, NACK, NULL);
                             envia_mensagem(msg_out, buffer_out, socket);
-                            continue;
                         }
                     } while (msg_in && msg_in->tipo != OK);
                     destroi_mensagem(msg_out);

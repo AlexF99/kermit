@@ -15,7 +15,7 @@ int main(int argc, char const *argv[])
 {
     printf("  \n");
     int socket = ConexaoRawSocket("lo");
-    mensagem_t *msg_in;
+    mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out;
     FILE *arq;
 
@@ -28,15 +28,12 @@ int main(int argc, char const *argv[])
     for (;;)
     {
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-        msg_in = desempacota_mensagem(buffer_in);
-        if (msg_in == NULL)
+        if (desempacota_mensagem(buffer_in, &msg_in) == -1)
         {
-            printf("ENVIANDO NACK\n");
-            msg_out = cria_mensagem(0, 0, NACK, 0);
+            printf("ENVIANDO NACK...\n");
+            msg_out = cria_mensagem(0, 0, NACK, NULL);
             envia_mensagem(msg_out, buffer_out, socket);
-            continue;
         }
-
         if (msg_in && msg_in->tipo == BACKUP_ARQUIVO)
         {
             char bkp_str[100] = "backup_";

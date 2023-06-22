@@ -39,7 +39,7 @@ void envia_mensagem(mensagem_t *msg, unsigned char *buffer, int socket);
 
 void destroi_mensagem(mensagem_t *msg);
 
-mensagem_t *desempacota_mensagem(unsigned char *pacote);
+int desempacota_mensagem(unsigned char *pacote, mensagem_t **msg);
 
 unsigned char *empacota_mensagem(mensagem_t *mensagem);
 

@@ -10,7 +10,7 @@
 
 int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
-    mensagem_t *msg_in = NULL;
+    mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out = NULL;
     size_t bytes_lidos;
     char dados[64];
@@ -35,7 +35,7 @@ int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in
                 printf("deu timeout com recv (envio do arq)\n");
                 return -1;
             }
-            msg_in = desempacota_mensagem(buffer_in);
+            desempacota_mensagem(buffer_in, &msg_in);
             if (msg_in && msg_in->tipo == NACK)
             {
                 printf("RECEBI UM NACK, reenviando mensagem...\n");
@@ -56,7 +56,7 @@ int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in
 
 int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
-    mensagem_t *msg_in;
+    mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out;
 
     int sequencia_recibo = 0;
@@ -64,13 +64,11 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
     do
     {
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-        msg_in = desempacota_mensagem(buffer_in);
-        if (msg_in == NULL)
+        if (desempacota_mensagem(buffer_in, &msg_in) == -1)
         {
             printf("ENVIANDO NACK...\n");
             msg_out = cria_mensagem(0, 0, NACK, NULL);
             envia_mensagem(msg_out, buffer_out, socket);
-            continue;
         }
     } while (msg_in->tipo != DADOS);
 
@@ -89,13 +87,11 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
         {
             destroi_mensagem(msg_in);
             recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
-            msg_in = desempacota_mensagem(buffer_in);
-            if (msg_in == NULL)
+            if (desempacota_mensagem(buffer_in, &msg_in) == -1)
             {
                 printf("ENVIANDO NACK...\n");
                 msg_out = cria_mensagem(0, 0, NACK, NULL);
                 envia_mensagem(msg_out, buffer_out, socket);
-                continue;
             }
         } while ((msg_in->tipo != DADOS || msg_in->tipo != FIM_ARQUIVO) && msg_in->sequencia != sequencia_recibo);
 

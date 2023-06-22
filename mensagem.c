@@ -90,13 +90,15 @@ unsigned char *empacota_mensagem(mensagem_t *msg)
     return pct_mensagem;
 }
 
-mensagem_t *desempacota_mensagem(unsigned char *pacote)
+int desempacota_mensagem(unsigned char *pacote, mensagem_t **msg)
 {
-    mensagem_t *msg;
     unsigned char inicio_mensagem = (unsigned char)*pacote;
 
     if (inicio_mensagem != INICIO_MSG)
-        return cria_mensagem(0, 0, LIXO_0, 0);
+    {
+        *msg = cria_mensagem(0, 0, LIXO_0, 0);
+        return 0;
+    }
 
     unsigned char tamanho;
     unsigned char sequencia;
@@ -117,17 +119,14 @@ mensagem_t *desempacota_mensagem(unsigned char *pacote)
     check_paridade[0] = aux_e;
     check_paridade[1] = aux_d;
 
-    check_paridade[0] = paridade_byte(check_paridade);
-    check_paridade[1] = paridade;
-
-    unsigned char p = paridade_byte(check_paridade);
-    if (p != 0b00000000)
+    *msg = cria_mensagem(tamanho, sequencia, tipo, (pacote + 3));
+    if (paridade != paridade_byte(check_paridade))
     {
         // vai gerar um NACK
-        return NULL;
+        printf("erro de paridade!!\n");
+        return -1;
     }
-    msg = cria_mensagem(tamanho, sequencia, tipo, (pacote + 3));
-    return msg;
+    return 0;
 }
 
 void imprime_mensagem(mensagem_t *msg)
