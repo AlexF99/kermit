@@ -10,7 +10,7 @@
 
 int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in, int socket)
 {
-    mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
+    mensagem_t *msg_in = NULL;
     mensagem_t *msg_out = NULL;
     size_t bytes_lidos;
     char dados[64];
@@ -26,15 +26,14 @@ int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in
         msg_out = cria_mensagem((unsigned char)bytes_lidos, sequencia_envio++, DADOS, (unsigned char *)dados);
         memset(dados, 0, 64);
         envia_mensagem(msg_out, buffer_out, socket);
-
         do
         {
-            destroi_mensagem(msg_in);
-            if (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
+            while (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
             {
-                printf("deu timeout com recv (envio do arq)\n");
-                return -1;
+                printf("deu timeout no envio do arquivo\nenviando msg %d novamente\n", sequencia_envio);
+                envia_mensagem(msg_out, buffer_out, socket);
             }
+            destroi_mensagem(msg_in);
             desempacota_mensagem(buffer_in, &msg_in);
             if (msg_in && msg_in->tipo == NACK)
             {
@@ -85,8 +84,8 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
 
         do
         {
-            destroi_mensagem(msg_in);
             recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+            destroi_mensagem(msg_in);
             if (desempacota_mensagem(buffer_in, &msg_in) == -1)
             {
                 printf("ENVIANDO NACK...\n");

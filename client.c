@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
 
                     do
                     {
-                        if (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
+                        while (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
                         {
                             printf("deu timeout com recv(nome arquivo)\n");
                             envia_mensagem(msg_out, buffer_out, socket);
@@ -69,9 +69,7 @@ int main(int argc, char const *argv[])
                         }
                     } while (msg_in && msg_in->tipo != OK);
                     destroi_mensagem(msg_out);
-
-                    while (envia_arquivo(arq, buffer_out, buffer_in, socket) == -1) // verifica se deu timeout no envio
-                        printf("reenviando...");
+                    envia_arquivo(arq, buffer_out, buffer_in, socket);
                 }
                 else
                     fprintf(stderr, "Erro ao abrir arquivo %s\n", nome_arquivo);

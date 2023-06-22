@@ -6,8 +6,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include "socket.h"
 #include <net/ethernet.h>
+#include <arpa/inet.h>
+#include <errno.h>
+
+#include "socket.h"
 #include "mensagem.h"
 #include "arquivo.h"
 
@@ -18,6 +21,16 @@ int main(int argc, char const *argv[])
     mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out;
     FILE *arq;
+
+    // timeout config
+    struct timeval timeout;
+    timeout.tv_sec = 1;
+    timeout.tv_usec = 0;
+    if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
+    {
+        fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
+        exit(1);
+    }
 
     unsigned char *buffer_in = (unsigned char *)malloc(67);  // to receive data
     unsigned char *buffer_out = (unsigned char *)malloc(67); // to receive data
