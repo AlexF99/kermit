@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <glob.h>
 
 #include "entrada.h"
 
@@ -60,10 +61,13 @@ entrada_t *get_entrada()
     printf("recuperar backup: recupera <nome arquivos ou regex>\n");
     printf("define dir p/ backup: bkpdir <caminho>\nverifica backup: verifica <nome arquivo>\n\n:" WHITE);
 
-    char comando[50];
     entrada_t *entrada = malloc(sizeof(entrada_t *));
     char *line = NULL;
     size_t size = 200;
+
+    char pattern[200];
+    glob_t paths;
+    int result;
 
     if (getline(&line, &size, stdin) == -1)
         printf("No line\n");
@@ -72,30 +76,28 @@ entrada_t *get_entrada()
 
     line[strlen(line) - 1] = '\0';
 
-    char **aux = malloc(10 * sizeof(char *));
     entrada->params = malloc(10 * sizeof(char *));
     for (int i = 0; i < 10; i++)
-        aux[i] = malloc(200 * sizeof(char));
+        entrada->params[i] = malloc(50 * sizeof(char));
 
-    char *ptr = strtok(line, " ");
-    int num_entradas = 0;
-    aux[num_entradas++] = ptr;
+    char *comando = strtok(line, " ");
 
-    while (ptr != NULL)
+    strcpy(pattern, line + strlen(comando) + 1);
+    result = glob(pattern, 0, NULL, &paths);
+
+    if (result != 0)
     {
-        ptr = strtok(NULL, " ");
-        if (ptr != NULL)
-            aux[num_entradas++] = ptr;
+        strcpy(entrada->params[0], pattern);
     }
-
-    strcpy(comando, aux[0]);
-    for (int i = 1; i < num_entradas; i++)
+    else
     {
-        if (aux != NULL && strlen(aux[i]) > 0)
-            entrada->params[i - 1] = aux[i];
+        for (size_t i = 0; i < paths.gl_pathc; ++i)
+        {
+            entrada->num_params++;
+            strcpy(entrada->params[i], paths.gl_pathv[i]);
+        }
+        globfree(&paths);
     }
-
-    entrada->num_params = num_entradas - 1;
 
     if (strcmp("cd", comando) == 0)
     {
@@ -113,10 +115,5 @@ entrada_t *get_entrada()
     else
         fprintf(stderr, "ERRO: comando invalido!\n\n");
 
-    printf("comando: %d\n", entrada->comando);
-    for (int i = 0; i < num_entradas - 1; i++)
-        printf("arq %d: %s\n", i, entrada->params[i]);
-
     return entrada;
-    // todo: free aux
 }

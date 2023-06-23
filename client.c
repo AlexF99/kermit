@@ -40,6 +40,9 @@ int main(int argc, char const *argv[])
     for (;;)
     {
         entrada_t *entrada = get_entrada();
+        if (entrada == NULL)
+            continue;
+
         if (entrada->comando == BACKUP)
         {
             for (int i = 0; i < entrada->num_params; i++)
