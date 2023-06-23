@@ -82,6 +82,21 @@ int main(int argc, char const *argv[])
                 memset(nome_arquivo, 0, 100);
                 strcpy(nome_arquivo, entrada->params[i]);
 
+                msg_out = cria_mensagem(strlen(nome_arquivo), 0, RECUPERA_ARQUIVO, (unsigned char *)nome_arquivo);
+                envia_mensagem(msg_out, buffer_out, socket);
+
+                do                
+                {
+                    recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+                    desempacota_mensagem(buffer_in, &msg_in);
+                } while (msg_in->tipo != ERRO && msg_in->tipo != DADOS);
+
+                if (msg_in->tipo == ERRO)
+                {
+                    printf("%s\n", msg_in->dados);
+                    continue;
+                }
+
                 char bkp_str[100] = "recupera_";
                 strcat(bkp_str, nome_arquivo);
                 FILE *arq = fopen(bkp_str, "w+");
@@ -89,11 +104,8 @@ int main(int argc, char const *argv[])
                 if (!arq)
                 {
                     printf("Erro ao recuperar backup (client)\n");
-                    return 1;
+                    continue;
                 }
-
-                msg_out = cria_mensagem(strlen(nome_arquivo), 0, RECUPERA_ARQUIVO, (unsigned char *)nome_arquivo);
-                envia_mensagem(msg_out, buffer_out, socket);
 
                 recebe_arquivo(arq, buffer_out, buffer_in, socket);
             }

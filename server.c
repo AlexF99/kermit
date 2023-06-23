@@ -76,12 +76,38 @@ int main(int argc, char const *argv[])
 
             if (!arq)
             {
-                printf("Arquivo não existe!\n");
-                return -1;
-            }
+                char error_msg[63];
+                switch (errno)
+                {
+                case ENOENT:
+                    strcpy(error_msg, "ERRO: Arquivo ou diretório não existe.");
+                    break;
+                case ENOMEM:
+                    strcpy(error_msg, "ERRO: Sem espaço de armazenamento."); 
+                    break;
 
-            if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
-                printf("Backup recuperado com sucesso!\n");
+                case EACCES:
+                    strcpy(error_msg, "ERRO: Sem permissão.");
+                    break;
+
+                case EISDIR:
+                    strcpy(error_msg, "ERRO: Arquivo é um diretório.");
+                    break;
+                
+                default:
+                    strcpy(error_msg, "ERRO: Algo inesperado ocorreu.");
+                    break;
+                }
+
+                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *) error_msg);
+                envia_mensagem(msg_out, buffer_out, socket);
+                printf("%s\n", error_msg);
+            }
+            else
+            {
+                if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
+                    printf("Backup recuperado com sucesso!\n");
+            }
         }
     }
     return 0;
