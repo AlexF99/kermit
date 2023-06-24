@@ -34,11 +34,11 @@ int main(int argc, char const *argv[])
 
     unsigned char *buffer_out = (unsigned char *)malloc(67);
     unsigned char *buffer_in = (unsigned char *)malloc(67);
-    memset(buffer_out, 0, 67);
-    memset(buffer_in, 0, 67);
 
     for (;;)
     {
+        memset(buffer_out, 0, 67);
+        memset(buffer_in, 0, 67);
         entrada_t *entrada = get_entrada();
         if (entrada == NULL)
             continue;
@@ -103,6 +103,13 @@ int main(int argc, char const *argv[])
         }
         else if (entrada->comando == CD)
             continue;
+        else if (entrada->comando == BKPDIR)
+        {
+            memset(nome_arquivo, 0, 100);
+            strcpy(nome_arquivo, entrada->params[0]);
+            msg_out = cria_mensagem(strlen(nome_arquivo), 0, SERVER_DIR, (unsigned char *)nome_arquivo);
+            envia_mensagem(msg_out, buffer_out, socket);
+        }
     }
 
     close(socket);
