@@ -3,6 +3,7 @@
 *.mkv
 *.iso
 *.png
+*.jpg
 backup_*
 client
 server

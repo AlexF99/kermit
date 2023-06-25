@@ -63,6 +63,7 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
     do
     {
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+
         if (desempacota_mensagem(buffer_in, &msg_in) == -1)
         {
             printf("ENVIANDO NACK...\n");

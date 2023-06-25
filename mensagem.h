@@ -31,6 +31,13 @@ enum TIPOS
     NACK
 };
 
+enum ERROS
+{
+    DISCO_CHEIO = '0',
+    SEM_PERMISSAO = '1',
+    ARQ_NAO_EXISTE = '2',
+};
+
 #define INICIO_MSG 126
 
 mensagem_t *cria_mensagem(unsigned char tamanho, unsigned char sequencia, unsigned char tipo, unsigned char *dados);
