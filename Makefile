@@ -4,7 +4,7 @@ client: socket.o mensagem.o entrada.o arquivo.o client.c
 	gcc -Wall socket.o mensagem.o entrada.o arquivo.o client.c -o client
 
 server: socket.o mensagem.o arquivo.o server.c
-	gcc -Wall socket.o mensagem.o arquivo.o server.c -o server
+	gcc -Wall socket.o mensagem.o entrada.o arquivo.o server.c -o server
 
 entrada.o: entrada.c
 	gcc -Wall -c entrada.c -o entrada.o

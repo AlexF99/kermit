@@ -12,6 +12,7 @@
 
 #include "socket.h"
 #include "mensagem.h"
+#include "entrada.h"
 #include "arquivo.h"
 
 int main(int argc, char const *argv[])
@@ -35,11 +36,10 @@ int main(int argc, char const *argv[])
     unsigned char *buffer_in = (unsigned char *)malloc(67);  // to receive data
     unsigned char *buffer_out = (unsigned char *)malloc(67); // to receive data
 
-    memset(buffer_in, 0, 67);
-    memset(buffer_out, 0, 67);
-
     for (;;)
     {
+        memset(buffer_in, 0, 67);
+        memset(buffer_out, 0, 67);
         recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
         if (desempacota_mensagem(buffer_in, &msg_in) == -1)
         {
@@ -128,6 +128,12 @@ int main(int argc, char const *argv[])
                 if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
                     printf("Backup recuperado com sucesso!\n");
             }
+        }
+        else if (msg_in && msg_in->tipo == SERVER_DIR)
+        {
+            char diretorio[100];
+            strcpy(diretorio, (char *)msg_in->dados);
+            cd_local(diretorio);
         }
     }
     return 0;

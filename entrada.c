@@ -109,7 +109,7 @@ entrada_t *get_entrada()
     else if (strcmp("recupera", comando) == 0)
         entrada->comando = RECUPERA;
     else if (strcmp("bkpdir", comando) == 0)
-        printf("bkpdir\n");
+        entrada->comando = BKPDIR;
     else if (strcmp("verifica", comando) == 0)
         printf("verifica\n");
     else

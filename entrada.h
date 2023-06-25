@@ -14,4 +14,6 @@ typedef struct entrada_t
     int num_params;
 } entrada_t;
 
+int cd_local(char *path);
+
 entrada_t *get_entrada();
