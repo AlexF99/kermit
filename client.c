@@ -93,8 +93,32 @@ int main(int argc, char const *argv[])
 
                 if (msg_in->tipo == ERRO)
                 {
-                    printf("%s\n", msg_in->dados);
-                    continue;
+                    char tipo_erro = (msg_in->dados[0]);
+                    char * nome_arq_erro = (char *)(msg_in->dados)+2;
+
+                    if (strcmp(nome_arquivo, nome_arq_erro) == 0)
+                    {
+                        switch (tipo_erro)
+                        {
+                        case DISCO_CHEIO:
+                            printf("ERRO: Servidor sem espaço de armazenamento disponivel.");
+                            break;
+
+                        case SEM_PERMISSAO:
+                            printf("ERRO: Sem permissão em: %s.\n", nome_arq_erro);
+                            break;
+
+                        case ARQ_NAO_EXISTE:
+                            printf("ERRO: Arquivo %s não encontrado.\n", nome_arq_erro);
+                            break;
+
+                        default:
+                            printf("ERRO: Algo inesperado aconteceu.\n");
+                            break;
+                        }
+
+                        continue;
+                    }
                 }
 
                 char bkp_str[100] = "recupera_";
