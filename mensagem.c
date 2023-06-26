@@ -96,7 +96,7 @@ int desempacota_mensagem(unsigned char *pacote, mensagem_t **msg)
 
     if (inicio_mensagem != INICIO_MSG)
     {
-        *msg = cria_mensagem(0, 0, LIXO_0, 0);
+        *msg = cria_mensagem(0, 0, LIXO_1, 0);
         return 0;
     }
 

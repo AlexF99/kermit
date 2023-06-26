@@ -111,7 +111,9 @@ entrada_t *get_entrada()
     else if (strcmp("bkpdir", comando) == 0)
         entrada->comando = BKPDIR;
     else if (strcmp("verifica", comando) == 0)
-        printf("verifica\n");
+        entrada->comando = VERIFICA;
+    else if (strcmp("md5", comando) == 0)
+        entrada->comando = MD5_E;
     else
         fprintf(stderr, "ERRO: comando invalido!\n\n");
 

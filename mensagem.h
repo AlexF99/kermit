@@ -21,7 +21,7 @@ enum TIPOS
     ESC,
     VERIF,
     NOME_ARQUIVO,
-    LIXO_0,
+    MD5_T,
     DADOS,
     FIM_ARQUIVO,
     FIM_GRUPO_ARQUIVO,

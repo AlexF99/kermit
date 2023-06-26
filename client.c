@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <openssl/md5.h>
 
 #include "socket.h"
 #include "mensagem.h"
@@ -51,6 +52,7 @@ int main(int argc, char const *argv[])
                 strcpy(nome_arquivo, entrada->params[i]);
                 printf("nome arquivo: \"%s\"\n", entrada->params[i]);
                 FILE *arq = fopen(nome_arquivo, "r");
+                printf("%s\n", nome_arquivo);
 
                 if (arq)
                 {
@@ -145,6 +147,52 @@ int main(int argc, char const *argv[])
             strcpy(nome_arquivo, entrada->params[0]);
             msg_out = cria_mensagem(strlen(nome_arquivo), 0, SERVER_DIR, (unsigned char *)nome_arquivo);
             envia_mensagem(msg_out, buffer_out, socket);
+        }
+        else if (entrada->comando == MD5_E)
+        {
+            strcpy(nome_arquivo, entrada->params[1]);
+            printf("nome arquivo: \"%s\"\n", entrada->params[0]);
+            FILE *arq = fopen(nome_arquivo, "rb");
+            int seq = 0;
+
+            if (!arq)
+            {
+                printf("Erro ao abrir arquivo %s\n", nome_arquivo);
+                continue;
+            }
+
+            msg_out = cria_mensagem(strlen(nome_arquivo), seq++, MD5_T, (unsigned char *)nome_arquivo);
+            envia_mensagem(msg_out, buffer_out, socket);
+
+            do
+            {
+                recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+                desempacota_mensagem(buffer_in, &msg_in);
+            } while (msg_in->tipo != ACK);
+
+            unsigned char hash[MD5_DIGEST_LENGTH];
+            unsigned char data[1024];
+            int bytes;
+
+            MD5_CTX mdContext;
+            MD5_Init(&mdContext);
+
+            while ((bytes = fread(data, 1, 1024, arq)) != 0)
+                MD5_Update(&mdContext, data, bytes);
+            MD5_Final(hash, &mdContext);
+
+            msg_out = cria_mensagem(strlen((char*)hash), seq++, DADOS, hash);
+            envia_mensagem(msg_out, buffer_out, socket);
+
+            do
+            {
+                recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+                desempacota_mensagem(buffer_in, &msg_in);
+            } while ((msg_in->tipo != DADOS || msg_in->tipo != ERRO) && msg_in->sequencia != seq);
+
+            printf("%s\n", (char *)msg_in->dados);
+
+            fclose(arq);
         }
     }
 

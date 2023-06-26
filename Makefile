@@ -1,10 +1,10 @@
 run: client server
 
 client: socket.o mensagem.o entrada.o arquivo.o client.c
-	gcc -Wall socket.o mensagem.o entrada.o arquivo.o client.c -o client
+	gcc -Wall socket.o mensagem.o entrada.o arquivo.o client.c -o client -lssl -lcrypto
 
 server: socket.o mensagem.o arquivo.o server.c
-	gcc -Wall socket.o mensagem.o entrada.o arquivo.o server.c -o server
+	gcc -Wall socket.o mensagem.o entrada.o arquivo.o server.c -o server -lssl -lcrypto
 
 entrada.o: entrada.c
 	gcc -Wall -c entrada.c -o entrada.o

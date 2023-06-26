@@ -5,6 +5,7 @@ enum COMANDOS
     RECUPERA = 3,
     BKPDIR = 4,
     VERIFICA = 5,
+    MD5_E = 6
 };
 
 typedef struct entrada_t
