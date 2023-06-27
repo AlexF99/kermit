@@ -87,10 +87,13 @@ entrada_t *get_entrada()
 
     if (result != 0)
     {
+        entrada->num_params = 1;
         strcpy(entrada->params[0], pattern);
     }
     else
     {
+        entrada->params = realloc(entrada->params, paths.gl_pathc);
+
         for (size_t i = 0; i < paths.gl_pathc; ++i)
         {
             entrada->num_params++;
