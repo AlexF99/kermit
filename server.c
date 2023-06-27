@@ -25,8 +25,8 @@ int main(int argc, char const *argv[])
 
     // timeout config
     struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500000;
     if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
     {
         fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
                 switch (errno)
                 {
                 case ENOMEM:
-                    strcpy(error_msg, "0-"); 
+                    strcpy(error_msg, "0-");
                     break;
 
                 case EACCES:
@@ -70,14 +70,14 @@ int main(int argc, char const *argv[])
                 case ENOENT:
                     strcpy(error_msg, "2-");
                     break;
-                
+
                 default:
                     strcpy(error_msg, "3-");
                     break;
                 }
 
                 strcat(error_msg, (char *)msg_in->dados);
-                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *) error_msg);
+                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *)error_msg);
                 envia_mensagem(msg_out, buffer_out, socket);
             }
             else
@@ -103,7 +103,7 @@ int main(int argc, char const *argv[])
                 switch (errno)
                 {
                 case ENOMEM:
-                    strcpy(error_msg, "0-"); 
+                    strcpy(error_msg, "0-");
                     break;
 
                 case EACCES:
@@ -113,14 +113,14 @@ int main(int argc, char const *argv[])
                 case ENOENT:
                     strcpy(error_msg, "2-");
                     break;
-                
+
                 default:
                     strcpy(error_msg, "3-");
                     break;
                 }
 
                 strcat(error_msg, nome_arquivo);
-                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *) error_msg);
+                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *)error_msg);
                 envia_mensagem(msg_out, buffer_out, socket);
             }
             else

@@ -24,8 +24,8 @@ int main(int argc, char const *argv[])
 
     // timeout config
     struct timeval timeout;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 500000;
     if (setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&timeout, sizeof(timeout)) < 0)
     {
         fprintf(stderr, "Erro ao definir o timeout de recv: %s\n", strerror(errno));
@@ -88,7 +88,7 @@ int main(int argc, char const *argv[])
                 msg_out = cria_mensagem(strlen(nome_arquivo), 0, RECUPERA_ARQUIVO, (unsigned char *)nome_arquivo);
                 envia_mensagem(msg_out, buffer_out, socket);
 
-                do                
+                do
                 {
                     recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
                     desempacota_mensagem(buffer_in, &msg_in);
@@ -97,7 +97,7 @@ int main(int argc, char const *argv[])
                 if (msg_in->tipo == ERRO)
                 {
                     char tipo_erro = (msg_in->dados[0]);
-                    char * nome_arq_erro = (char *)(msg_in->dados)+2;
+                    char *nome_arq_erro = (char *)(msg_in->dados) + 2;
 
                     if (strcmp(nome_arquivo, nome_arq_erro) == 0)
                     {
