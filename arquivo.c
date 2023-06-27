@@ -23,18 +23,21 @@ int envia_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_in
 
         bytes_lidos = fread(dados, 1, 63, arq);
 
-        msg_out = cria_mensagem((unsigned char)bytes_lidos, sequencia_envio++, DADOS, (unsigned char *)dados);
-        memset(dados, 0, 64);
+        msg_out = cria_mensagem((unsigned char)bytes_lidos, sequencia_envio, DADOS, (unsigned char *)dados);
         envia_mensagem(msg_out, buffer_out, socket);
         do
         {
             while (recv(socket, buffer_in, sizeof(unsigned char) * 67, 0) == -1)
             {
                 printf("deu timeout no envio do arquivo\nenviando msg %d novamente\n", sequencia_envio);
+                msg_out = cria_mensagem((unsigned char)bytes_lidos, sequencia_envio - 1, DADOS, (unsigned char *)dados);
                 envia_mensagem(msg_out, buffer_out, socket);
             }
+            memset(dados, 0, 64);
             destroi_mensagem(msg_in);
             desempacota_mensagem(buffer_in, &msg_in);
+            if (msg_in && msg_in->tipo == ACK)
+                sequencia_envio++;
             if (msg_in && msg_in->tipo == NACK)
             {
                 printf("RECEBI UM NACK, reenviando mensagem...\n");
@@ -57,7 +60,7 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
 {
     mensagem_t *msg_in = cria_mensagem(0, 0, 0, NULL);
     mensagem_t *msg_out;
-
+    int last_msg = -1;
     int sequencia_recibo = 0;
 
     do
@@ -77,12 +80,18 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
         if (sequencia_recibo >= 64)
             sequencia_recibo = 1;
 
-        fwrite((char *)msg_in->dados, 1, msg_in->tamanho, arq);
+        if (msg_in->tipo == DADOS && msg_in->sequencia != last_msg)
+        {
+            fwrite((char *)msg_in->dados, 1, msg_in->tamanho, arq);
+            last_msg = msg_in->sequencia;
+        }
 
         msg_out = cria_mensagem(63, msg_in->sequencia, ACK, NULL);
         envia_mensagem(msg_out, buffer_out, socket);
         sequencia_recibo = msg_in->sequencia + 1 >= 64 ? 1 : msg_in->sequencia + 1;
 
+        int is_nack = 0;
+        int num_nacks = 0;
         do
         {
             recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
@@ -92,8 +101,9 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
                 printf("ENVIANDO NACK...\n");
                 msg_out = cria_mensagem(0, 0, NACK, NULL);
                 envia_mensagem(msg_out, buffer_out, socket);
+                num_nacks++;
             }
-        } while ((msg_in->tipo != DADOS || msg_in->tipo != FIM_ARQUIVO) && msg_in->sequencia != sequencia_recibo);
+        } while ((is_nack && num_nacks < 30) || (msg_in->tipo != DADOS && msg_in->tipo != FIM_ARQUIVO));
 
         destroi_mensagem(msg_out);
     }
