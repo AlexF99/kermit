@@ -25,7 +25,6 @@ enum TIPOS
     DADOS,
     FIM_ARQUIVO,
     FIM_GRUPO_ARQUIVO,
-    LIXO_1,
     ERRO,
     OK,
     ACK,
