@@ -87,9 +87,13 @@ entrada_t *get_entrada()
 
     if (result != 0)
     {
+        entrada->params = malloc(10 * sizeof(char *));
         char **aux = malloc(10 * sizeof(char *));
         for (int i = 0; i < 10; i++)
+        {
+            entrada->params[i] = malloc(200 * sizeof(char));
             aux[i] = malloc(200 * sizeof(char));
+        }
 
         char *ptr = strtok(pattern, " ");
         int num_entradas = 0;
@@ -111,13 +115,15 @@ entrada_t *get_entrada()
     }
     else
     {
-        entrada->params = realloc(entrada->params, paths.gl_pathc);
-
+        entrada->params = malloc(paths.gl_pathc * sizeof(char *));
+        for (int i = 0; i < paths.gl_pathc; i++)
+            entrada->params[i] = malloc(200 * sizeof(char));
         for (size_t i = 0; i < paths.gl_pathc; ++i)
         {
             entrada->num_params++;
             strcpy(entrada->params[i], paths.gl_pathv[i]);
         }
+
         globfree(&paths);
     }
 
