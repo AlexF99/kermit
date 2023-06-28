@@ -104,13 +104,12 @@ int main(int argc, char const *argv[])
                     if (strcmp(nome_arquivo, nome_arq_erro) == 0)
                     {
                         recebe_erro_arq(tipo_erro, nome_arquivo);
+                        destroi_mensagem(msg_in);
                         continue;
                     }
                 }
 
-                char bkp_str[100] = "recupera_";
-                strcat(bkp_str, nome_arquivo);
-                FILE *arq = fopen(bkp_str, "w+");
+                FILE *arq = fopen(nome_arquivo, "w+");
 
                 if (!arq)
                 {
