@@ -123,7 +123,6 @@ int desempacota_mensagem(unsigned char *pacote, mensagem_t **msg)
     if (paridade != paridade_byte(check_paridade))
     {
         // vai gerar um NACK
-        printf("erro de paridade!!\n");
         return -1;
     }
     return 0;

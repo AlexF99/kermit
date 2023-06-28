@@ -9,6 +9,7 @@
 #include <net/ethernet.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <openssl/md5.h>
 
 #include "socket.h"
 #include "mensagem.h"
@@ -49,37 +50,10 @@ int main(int argc, char const *argv[])
         }
         if (msg_in && msg_in->tipo == BACKUP_ARQUIVO)
         {
-            char bkp_str[100] = "backup_";
-
-            strcat(bkp_str, (char *)msg_in->dados);
-            arq = fopen(bkp_str, "w+");
+            arq = fopen((char *) msg_in->dados, "w+");
 
             if (!arq)
-            {
-                char error_msg[63];
-                switch (errno)
-                {
-                case ENOMEM:
-                    strcpy(error_msg, "0-");
-                    break;
-
-                case EACCES:
-                    strcpy(error_msg, "1-");
-                    break;
-
-                case ENOENT:
-                    strcpy(error_msg, "2-");
-                    break;
-
-                default:
-                    strcpy(error_msg, "3-");
-                    break;
-                }
-
-                strcat(error_msg, (char *)msg_in->dados);
-                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *)error_msg);
-                envia_mensagem(msg_out, buffer_out, socket);
-            }
+                envia_erro_arq(errno, (char *) msg_in->dados, buffer_out, socket);
             else
             {
                 msg_out = cria_mensagem(0, msg_in->sequencia, OK, 0);
@@ -98,31 +72,7 @@ int main(int argc, char const *argv[])
             FILE *arq = fopen(nome_arquivo, "r");
 
             if (!arq)
-            {
-                char error_msg[63];
-                switch (errno)
-                {
-                case ENOMEM:
-                    strcpy(error_msg, "0-");
-                    break;
-
-                case EACCES:
-                    strcpy(error_msg, "1-");
-                    break;
-
-                case ENOENT:
-                    strcpy(error_msg, "2-");
-                    break;
-
-                default:
-                    strcpy(error_msg, "3-");
-                    break;
-                }
-
-                strcat(error_msg, nome_arquivo);
-                msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *)error_msg);
-                envia_mensagem(msg_out, buffer_out, socket);
-            }
+                envia_erro_arq(errno, nome_arquivo, buffer_out, socket);
             else
             {
                 if (envia_arquivo(arq, buffer_out, buffer_in, socket) != -1)
@@ -134,6 +84,31 @@ int main(int argc, char const *argv[])
             char diretorio[100];
             strcpy(diretorio, (char *)msg_in->dados);
             cd_local(diretorio);
+        }
+        else if (msg_in && msg_in->tipo == VERIF)
+        {
+            FILE * arq = fopen((char *) msg_in->dados, "rb");
+
+            if (arq)
+            {
+                unsigned char hash[MD5_DIGEST_LENGTH];
+                unsigned char data[1024];
+                int bytes;
+
+                MD5_CTX mdContext;
+                MD5_Init(&mdContext);
+
+                while ((bytes = fread(data, 1, 1024, arq)) != 0)
+                    MD5_Update(&mdContext, data, bytes);
+                MD5_Final(hash, &mdContext);
+
+                msg_out = cria_mensagem(strlen((char *) hash), 0, DADOS, hash);
+                envia_mensagem(msg_out, buffer_out, socket);
+
+                fclose(arq);
+            }
+            else
+                envia_erro_arq(errno, (char *) msg_in->dados, buffer_out, socket);
         }
     }
     return 0;

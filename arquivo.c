@@ -3,6 +3,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 
 #include "mensagem.h"
 #include "arquivo.h"
@@ -108,5 +109,61 @@ int recebe_arquivo(FILE *arq, unsigned char *buffer_out, unsigned char *buffer_i
         destroi_mensagem(msg_out);
     }
     fclose(arq);
+    return 0;
+}
+
+int envia_erro_arq(int error, char * nome_arquivo, unsigned char * buffer_out, int socket)
+{
+    mensagem_t * msg_out;
+    char error_msg[63];
+
+    switch (error)
+    {
+    case ENOMEM:
+        strcpy(error_msg, "0-");
+        break;
+
+    case EACCES:
+        strcpy(error_msg, "1-");
+        break;
+
+    case ENOENT:
+        strcpy(error_msg, "2-");
+        break;
+
+    default:
+        strcpy(error_msg, "3-");
+        break;
+    }
+
+    strcat(error_msg, nome_arquivo);
+    msg_out = cria_mensagem(sizeof(error_msg), 1, ERRO, (unsigned char *)error_msg);
+    envia_mensagem(msg_out, buffer_out, socket);
+    destroi_mensagem(msg_out);
+
+    return 0;
+}
+
+int recebe_erro_arq(int tipo_erro, char * nome_arq_erro)
+{
+    switch (tipo_erro)
+    {
+    case DISCO_CHEIO:
+        printf("ERRO: Servidor sem espaço de armazenamento disponivel.");
+        break;
+
+    case SEM_PERMISSAO:
+        printf("ERRO: Sem permissão em: %s.\n", nome_arq_erro);
+        break;
+
+    case ARQ_NAO_EXISTE:
+        printf("ERRO: Arquivo %s não encontrado.\n", nome_arq_erro);
+        break;
+
+    default:
+        printf("ERRO: Algo inesperado aconteceu.\n");
+        break;
+    }
+
     return 0;
 }

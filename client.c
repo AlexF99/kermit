@@ -8,6 +8,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <openssl/md5.h>
 
 #include "socket.h"
 #include "mensagem.h"
@@ -73,6 +74,7 @@ int main(int argc, char const *argv[])
                     } while (msg_in && msg_in->tipo != OK);
                     destroi_mensagem(msg_out);
                     envia_arquivo(arq, buffer_out, buffer_in, socket);
+                    destroi_mensagem(msg_in);
                 }
                 else
                     fprintf(stderr, "Erro ao abrir arquivo %s\n", nome_arquivo);
@@ -101,25 +103,7 @@ int main(int argc, char const *argv[])
 
                     if (strcmp(nome_arquivo, nome_arq_erro) == 0)
                     {
-                        switch (tipo_erro)
-                        {
-                        case DISCO_CHEIO:
-                            printf("ERRO: Servidor sem espaço de armazenamento disponivel.");
-                            break;
-
-                        case SEM_PERMISSAO:
-                            printf("ERRO: Sem permissão em: %s.\n", nome_arq_erro);
-                            break;
-
-                        case ARQ_NAO_EXISTE:
-                            printf("ERRO: Arquivo %s não encontrado.\n", nome_arq_erro);
-                            break;
-
-                        default:
-                            printf("ERRO: Algo inesperado aconteceu.\n");
-                            break;
-                        }
-
+                        recebe_erro_arq(tipo_erro, nome_arquivo);
                         continue;
                     }
                 }
@@ -135,6 +119,7 @@ int main(int argc, char const *argv[])
                 }
 
                 recebe_arquivo(arq, buffer_out, buffer_in, socket);
+                destroi_mensagem(msg_in);
             }
         }
         else if (entrada->comando == CD)
@@ -145,6 +130,55 @@ int main(int argc, char const *argv[])
             strcpy(nome_arquivo, entrada->params[0]);
             msg_out = cria_mensagem(strlen(nome_arquivo), 0, SERVER_DIR, (unsigned char *)nome_arquivo);
             envia_mensagem(msg_out, buffer_out, socket);
+        }
+        else if (entrada->comando == VERIFICA)
+        {
+            char nome_verifica[100];
+            strcpy(nome_verifica, entrada->params[0]);
+
+            FILE * arq = fopen(nome_verifica, "rb");
+
+            if (arq)
+            {
+                unsigned char hash[MD5_DIGEST_LENGTH];
+                unsigned char data[1024];
+                int bytes;
+
+                MD5_CTX mdContext;
+                MD5_Init(&mdContext);
+
+                while ((bytes = fread(data, 1, 1024, arq)) != 0)
+                    MD5_Update(&mdContext, data, bytes);
+                MD5_Final(hash, &mdContext);
+
+                msg_out = cria_mensagem(strlen(nome_verifica), 0, VERIF, (unsigned char *)nome_verifica);
+                envia_mensagem(msg_out, buffer_out, socket);
+
+                do
+                {
+                    recv(socket, buffer_in, sizeof(unsigned char) * 67, 0);
+                    desempacota_mensagem(buffer_in, &msg_in);
+                } while (msg_in->tipo != DADOS && msg_in->tipo != ERRO);
+
+                if (msg_in->tipo == DADOS)
+                {
+                    if (memcmp((char *) hash, (char *) msg_in->dados, strlen((char*) hash)) == 0)
+                        printf("Arquivos possuem mesmo MD5\n");
+                    else
+                        printf("Arquivos não possuem mesmo MD5\n");
+                }
+                else
+                {
+                    char tipo_erro = (msg_in->dados[0]);
+                    char *nome_arq_erro = (char *)(msg_in->dados) + 2;
+                    recebe_erro_arq(tipo_erro, nome_arq_erro);
+                }
+
+                destroi_mensagem(msg_in);
+
+                fclose(arq);
+            }
+
         }
     }
 
