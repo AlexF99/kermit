@@ -106,7 +106,6 @@ entrada_t *get_entrada()
                 aux[num_entradas++] = ptr;
         }
         entrada->num_params = num_entradas;
-        printf("%d\n", num_entradas);
         for (int i = 0; i < num_entradas; i++)
         {
             if (aux != NULL && strlen(aux[i]) > 0)
@@ -139,7 +138,7 @@ entrada_t *get_entrada()
     else if (strcmp("bkpdir", comando) == 0)
         entrada->comando = BKPDIR;
     else if (strcmp("verifica", comando) == 0)
-        printf("verifica\n");
+        entrada->comando = VERIFICA;
     else
         fprintf(stderr, "ERRO: comando invalido!\n\n");
 
