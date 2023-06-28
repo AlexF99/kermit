@@ -87,8 +87,27 @@ entrada_t *get_entrada()
 
     if (result != 0)
     {
-        entrada->num_params = 1;
-        strcpy(entrada->params[0], pattern);
+        char **aux = malloc(10 * sizeof(char *));
+        for (int i = 0; i < 10; i++)
+            aux[i] = malloc(200 * sizeof(char));
+
+        char *ptr = strtok(pattern, " ");
+        int num_entradas = 0;
+        aux[num_entradas++] = ptr;
+
+        while (ptr != NULL)
+        {
+            ptr = strtok(NULL, " ");
+            if (ptr != NULL)
+                aux[num_entradas++] = ptr;
+        }
+        entrada->num_params = num_entradas;
+        printf("%d\n", num_entradas);
+        for (int i = 0; i < num_entradas; i++)
+        {
+            if (aux != NULL && strlen(aux[i]) > 0)
+                strcpy(entrada->params[i], aux[i]);
+        }
     }
     else
     {
